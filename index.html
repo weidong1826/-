@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>本地图片压缩工具 (实时预览)</title>
+    <title>本地图片压缩工具</title>
     <style>
         :root {
             --primary-color: #007bff;
@@ -47,19 +47,24 @@
         input[type="file"] {
             display: none;
         }
-        .custom-file-upload {
-            display: inline-block;
-            padding: 10px 24px;
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 20px;
             cursor: pointer;
             background: var(--primary-color);
             color: white;
+            border: none;
             border-radius: 6px;
             font-weight: 500;
+            font-size: 1rem;
             transition: background 0.2s;
+            gap: 8px;
         }
-        .custom-file-upload:hover {
-            background: #0056b3;
-        }
+        .btn:hover { background: #0056b3; }
+        .btn-secondary { background: #6c757d; }
+        .btn-secondary:hover { background: #5a6268; }
 
         .controls-section {
             padding: 20px;
@@ -68,11 +73,14 @@
             margin-bottom: 25px;
             display: none; /* 初始隐藏 */
         }
+        .control-group {
+            margin-bottom: 15px;
+        }
         .slider-container {
             display: flex;
             align-items: center;
             gap: 15px;
-            margin-bottom: 10px;
+            margin-top: 10px;
         }
         input[type="range"] {
             flex-grow: 1;
@@ -86,11 +94,6 @@
             color: var(--primary-color);
             min-width: 40px;
         }
-        .note {
-           font-size: 0.85em;
-           color: #666;
-           margin-top: 5px;
-        }
 
         .preview-container {
             display: grid;
@@ -103,6 +106,8 @@
             border: 1px solid #eee;
             padding: 15px;
             border-radius: 8px;
+            display: flex;
+            flex-direction: column;
         }
         .preview-box h3 {
             margin-top: 0;
@@ -110,16 +115,25 @@
             border-bottom: 1px solid #eee;
             padding-bottom: 10px;
             font-size: 1.1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .img-wrapper {
-            height: 250px;
+            height: 300px;
             display: flex;
             align-items: center;
             justify-content: center;
             background: #f8f9fa;
             border-radius: 4px;
             overflow: hidden;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            flex-grow: 1;
+            /* 使用格子背景以便看清图片边缘 */
+            background-image: linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee), 
+                              linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
         }
         .img-wrapper img {
             max-width: 100%;
@@ -129,10 +143,10 @@
         .file-info {
             font-size: 0.9rem;
             color: #555;
-        }
-        .file-info span {
-            font-weight: bold;
-            color: #333;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #eee;
         }
         .size-badge {
             display: inline-block;
@@ -151,20 +165,10 @@
         }
         .btn-download {
             background-color: #28a745;
-            color: white;
-            border: none;
             padding: 12px 30px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: background 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+            font-size: 1.1rem;
         }
         .btn-download:hover { background-color: #218838; }
-        .btn-download:disabled { background-color: #ccc; cursor: not-allowed; }
 
         @media (max-width: 768px) {
             .preview-container {
@@ -176,25 +180,26 @@
 <body>
 
 <div class="container">
-    <h1>🖼️ 本地图片压缩工具</h1>
+    <h1>🖼️ 本地图片压缩与旋转工具</h1>
 
     <div class="upload-section">
-        <label for="fileInput" class="custom-file-upload">
+        <label for="fileInput" class="btn">
             📁 选择一张图片
         </label>
         <input type="file" id="fileInput" accept="image/png, image/jpeg, image/jpg, image/webp">
-        <p style="margin-top: 10px; color: #888; font-size: 0.9em;">支持 PNG, JPG, WebP 格式</p>
+        <p style="margin-top: 10px; color: #888; font-size: 0.9em;">完全本地运行，支持 PNG, JPG, WebP 格式</p>
     </div>
 
     <div class="controls-section" id="controlsSection">
-        <label for="qualitySlider" style="font-weight: 600;">压缩质量 (0.1 - 1.0):</label>
-        <div class="slider-container">
-            <span>低质量</span>
-            <input type="range" id="qualitySlider" min="0.1" max="1.0" step="0.05" value="0.8">
-            <span>高质量</span>
-            <span class="quality-value" id="qualityValueText">0.8</span>
+        <div class="control-group">
+            <label for="qualitySlider" style="font-weight: 600;">压缩质量:</label>
+            <div class="slider-container">
+                <span>低</span>
+                <input type="range" id="qualitySlider" min="0.1" max="1.0" step="0.05" value="0.8">
+                <span>高</span>
+                <span class="quality-value" id="qualityValueText">0.8</span>
+            </div>
         </div>
-        <p class="note">注：为了保证压缩效果，输出格式将统一转换为 JPEG。过大的图片会被自动缩小至长边 1920px。</p>
     </div>
 
     <div class="preview-container" id="previewContainer">
@@ -209,27 +214,31 @@
         </div>
 
         <div class="preview-box">
-            <h3>压缩预览 (预计)</h3>
+            <h3>
+                处理预览
+                <button class="btn btn-secondary" id="rotateBtn" style="padding: 5px 10px; font-size: 0.9rem;">
+                    🔄 旋转 90°
+                </button>
+            </h3>
             <div class="img-wrapper">
-                <img id="compressedImage" src="" alt="Compressed Preview">
+                <img id="compressedImage" src="" alt="Processed Preview">
             </div>
             <div class="file-info">
                 预计大小: <span class="size-badge bg-compressed" id="compressedSize">-</span>
-                <span id="compressionRatio" style="font-size: 0.8em; margin-left: 10px;"></span>
+                <span id="compressionRatio" style="font-size: 0.85em; margin-left: 5px;"></span>
             </div>
         </div>
     </div>
 
     <div class="download-section" id="downloadSection">
-        <button id="downloadBtn" class="btn-download" disabled>
-            ⬇️ 下载压缩后的图片
+        <button id="downloadBtn" class="btn btn-download">
+            ⬇️ 下载处理后的图片
         </button>
     </div>
 
 </div>
 
 <script>
-    // 获取 DOM 元素
     const fileInput = document.getElementById('fileInput');
     const controlsSection = document.getElementById('controlsSection');
     const previewContainer = document.getElementById('previewContainer');
@@ -237,6 +246,7 @@
     
     const qualitySlider = document.getElementById('qualitySlider');
     const qualityValueText = document.getElementById('qualityValueText');
+    const rotateBtn = document.getElementById('rotateBtn');
     
     const originalImage = document.getElementById('originalImage');
     const compressedImage = document.getElementById('compressedImage');
@@ -248,9 +258,11 @@
     let currentFile = null;
     let sourceImageObj = new Image();
     let compressedBlob = null;
-    const MAX_WIDTH_HEIGHT = 1920; // 限制最大长宽，防止浏览器卡顿
+    
+    // 状态管理
+    let currentRotation = 0; // 取值: 0, 90, 180, 270
+    const MAX_WIDTH_HEIGHT = 1920; 
 
-    // 工具函数：格式化文件大小
     function formatSize(bytes) {
         if (bytes === 0) return '0 Bytes';
         const k = 1024;
@@ -259,21 +271,18 @@
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 
-    // 事件监听：选择文件
     fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) return;
         
         currentFile = file;
+        currentRotation = 0; // 重置旋转角度
         originalSizeText.textContent = formatSize(file.size);
         
-        // 显示 UI 区域
         controlsSection.style.display = 'block';
         previewContainer.style.display = 'grid';
         downloadSection.style.display = 'block';
-        downloadBtn.disabled = true;
 
-        // 读取文件并加载到原图预览和源图片对象中
         const reader = new FileReader();
         reader.onload = (event) => {
             originalImage.src = event.target.result;
@@ -282,83 +291,98 @@
         reader.readAsDataURL(file);
     });
 
-    // 源图片加载完成后触发首次压缩
     sourceImageObj.onload = () => {
-        compressImage();
+        processImage();
     };
 
-    // 事件监听：滑块变动
     qualitySlider.addEventListener('input', (e) => {
         qualityValueText.textContent = e.target.value;
-        compressImage();
+        processImage();
     });
 
-    // 核心功能：压缩图片
-    function compressImage() {
+    rotateBtn.addEventListener('click', () => {
+        currentRotation = (currentRotation + 90) % 360;
+        processImage();
+    });
+
+    // 核心处理函数：缩放、旋转、压缩
+    function processImage() {
         if (!sourceImageObj.src) return;
 
         const quality = parseFloat(qualitySlider.value);
         const canvas = document.createElement('canvas');
-        let width = sourceImageObj.width;
-        let height = sourceImageObj.height;
+        
+        // 1. 计算缩放后的基础尺寸
+        let drawWidth = sourceImageObj.width;
+        let drawHeight = sourceImageObj.height;
 
-        // 计算缩放比例 (如果图片过大)
-        if (width > MAX_WIDTH_HEIGHT || height > MAX_WIDTH_HEIGHT) {
-            if (width > height) {
-                height = Math.round((height * MAX_WIDTH_HEIGHT) / width);
-                width = MAX_WIDTH_HEIGHT;
+        if (drawWidth > MAX_WIDTH_HEIGHT || drawHeight > MAX_WIDTH_HEIGHT) {
+            if (drawWidth > drawHeight) {
+                drawHeight = Math.round((drawHeight * MAX_WIDTH_HEIGHT) / drawWidth);
+                drawWidth = MAX_WIDTH_HEIGHT;
             } else {
-                width = Math.round((width * MAX_WIDTH_HEIGHT) / height);
-                height = MAX_WIDTH_HEIGHT;
+                drawWidth = Math.round((drawWidth * MAX_WIDTH_HEIGHT) / drawHeight);
+                drawHeight = MAX_WIDTH_HEIGHT;
             }
         }
 
-        canvas.width = width;
-        canvas.height = height;
+        // 2. 根据旋转角度设定 Canvas 画布的最终尺寸
+        // 如果是 90 度或 270 度，画布的宽高需要对调
+        if (currentRotation === 90 || currentRotation === 270) {
+            canvas.width = drawHeight;
+            canvas.height = drawWidth;
+        } else {
+            canvas.width = drawWidth;
+            canvas.height = drawHeight;
+        }
 
         const ctx = canvas.getContext('2d');
-        // 绘制白色背景 (解决 PNG 转 JPEG 透明变黑的问题)
+        
+        // 填充白色背景（防止透明 PNG 变黑）
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(0, 0, width, height);
-        // 绘制图片
-        ctx.drawImage(sourceImageObj, 0, 0, width, height);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // 将 Canvas 内容导出为 Blob (强制使用 JPEG 以支持质量参数)
+        // 3. 执行旋转绘制操作
+        // 将原点移动到画布中心
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        // 旋转坐标系 (弧度制)
+        ctx.rotate((currentRotation * Math.PI) / 180);
+        // 绘制图片时，将图片的中心点对准刚刚移动过来的坐标原点
+        ctx.drawImage(sourceImageObj, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+
+        // 4. 导出压缩后的 Blob
         canvas.toBlob((blob) => {
-            if (!blob) {
-                alert('压缩失败，请重试。');
-                return;
-            }
+            if (!blob) return;
             compressedBlob = blob;
             
-            // 更新预览信息
+            // 更新 UI
             compressedSizeText.textContent = formatSize(blob.size);
             compressedImage.src = URL.createObjectURL(blob);
             
-            // 计算压缩率
             const ratio = Math.round((1 - (blob.size / currentFile.size)) * 100);
             if (ratio > 0) {
-                compressionRatioText.textContent = `(节省了 ${ratio}%)`;
+                compressionRatioText.textContent = `(省 ${ratio}%)`;
                 compressionRatioText.style.color = '#28a745';
             } else {
-                compressionRatioText.textContent = `(大小可能增加)`;
+                compressionRatioText.textContent = `(增大)`;
                 compressionRatioText.style.color = '#dc3545';
             }
-
-            downloadBtn.disabled = false;
-
-        }, 'image/jpeg', quality); // 使用 JPEG 格式和滑块质量
+        }, 'image/jpeg', quality);
     }
 
-    // 事件监听：下载按钮
     downloadBtn.addEventListener('click', () => {
         if (!compressedBlob) return;
         
         const link = document.createElement('a');
         link.href = URL.createObjectURL(compressedBlob);
-        // 生成新文件名 (原文件名 + _compressed.jpg)
         const originalNameStr = currentFile.name.split('.')[0];
-        link.download = `${originalNameStr}_compressed.jpg`;
+        // 标注包含了处理状态的文件名
+        let suffix = '_compressed';
+        if (currentRotation !== 0) {
+            suffix += '_rotated';
+        }
+        link.download = `${originalNameStr}${suffix}.jpg`;
+        
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
